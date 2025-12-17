@@ -23,4 +23,10 @@ if [ "$1" = "visualize" ]; then
     exit
 fi
 
-echo Unrecognised command \"$1\", please select either test, inference for visualize
+if [ "$1" = "phenotype" ]; then
+    dir=$2
+    python phenotype.py "$dir" --scale=1.0 --out="/data/out/phenotype.csv"
+    exit
+fi
+
+echo Unrecognised command \"$1\", please select either test, inference, visualize or phenotype

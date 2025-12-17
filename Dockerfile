@@ -16,6 +16,7 @@ WORKDIR /mmdetection
 RUN python -m pip install -v -e .
 RUN python -c "import mmdet;print(mmdet.__version__)"
 RUN python mmdet/utils/collect_env.py
+RUN python -m pip install "numpy<2" pandas pycocotools opencv-python scipy scikit-image sknw networkx alphashape
 
 
 WORKDIR /app

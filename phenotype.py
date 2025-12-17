@@ -1,9 +1,7 @@
-import copy
 import pandas as pd
 from typing import List
 from pathlib import Path
 from collections import defaultdict
-import sys
 import logging
 import pycocotools.mask as pct
 from concurrent.futures import ThreadPoolExecutor
@@ -11,7 +9,6 @@ import os
 import numpy as np
 import argparse
 import json
-import cv2
 
 from analysis import mask_analysis
 
@@ -74,9 +71,9 @@ def phenotype_file(file: Path, scale: float, idx: int):
     return data_out
 
 
-def main(paths: List[str], scale: float):
-    job_id = os.environ['SLURM_JOB_ID']
+def main(paths: List[str], scale: float, out: str):
     paths = [Path(p) for p in paths]
+    out = Path(out)
     for p in paths:
         logger.info(str(p))
 
@@ -85,19 +82,20 @@ def main(paths: List[str], scale: float):
         fs = list(p.glob('*.json'))
         files.extend(fs)
 
-    logger.info(f"Found {len(files)} files")
+    logger.info(f"Found {len(files)} .json files")
 
     with ThreadPoolExecutor() as e:
         dataframes = list(e.map(phenotype_file, files, [scale] * len(files), range(len(files))))
 
     data = pd.concat([pd.DataFrame(d) for d in dataframes], ignore_index=True)
-    data.to_csv(f'/home/a.kia5/herbdet/phenotype_out_{job_id}.csv')
+    data.to_csv(out)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Phenotype the mask output of a network.')
     parser.add_argument('directories', type=str, nargs='*')
     parser.add_argument('--scale', type=float, nargs=1, default=1.0)
+    parser.add_argument('--out', type=str, nargs=1, default='./phenotype.csv')
     args = parser.parse_args()
 
-    main(args.directories, args.scale[0])
+    main(args.directories, args.scale[0], args.out[0])
